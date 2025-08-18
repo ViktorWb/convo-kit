@@ -1,0 +1,28 @@
+{
+  "name": "convo-kit",
+  "author": "ViktorWb",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+      "dev": "cd demo && next dev"
+  },
+  "dependencies": {
+    "sharp": "^0.34",
+    "streamdown": "^1",
+    "uuid": "^13",
+    "zod": "^4"
+  },
+  "main": "./src/index.ts",
+  "browser": "./src/browser.ts",
+  "devDependencies": {
+    "@mantine/core": "^8",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "date-fns": "^4",
+    "next": "^15",
+    "react": "^19",
+    "react-dom": "^19",
+    "typescript": "^5"
+  }
+}

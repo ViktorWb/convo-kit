@@ -1,0 +1,17 @@
+@property --convo-kit-llm-fade-start {
+  syntax: '<number>'; /* <- defined as type number for the transition to work */
+  initial-value: 0;
+  inherits: false;
+}
+
+@property --convo-kit-llm-fade-end {
+  syntax: '<number>'; /* <- defined as type number for the transition to work */
+  initial-value: 0;
+  inherits: false;
+}
+
+.fadecontainer {
+    mask-image: linear-gradient(to bottom, black calc(1px * var(--convo-kit-llm-fade-start)), transparent calc(1px * var(--convo-kit-llm-fade-end)));
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+}
