@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-      "dev": "cd demo && next dev"
+      "dev": "cd demo && next dev",
+      "postinstall": "tsc"
   },
   "dependencies": {
     "sharp": "^0.34",
@@ -12,8 +13,8 @@
     "uuid": "^13",
     "zod": "^4"
   },
-  "main": "./src/index.ts",
-  "browser": "./src/browser.ts",
+  "main": "./src/index.js",
+  "browser": "./src/browser.js",
   "devDependencies": {
     "@mantine/core": "^8",
     "@types/node": "^22",
