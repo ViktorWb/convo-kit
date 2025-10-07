@@ -14,7 +14,7 @@ This kit contains:
 
 The `LlmMarkdown` component renders markdown and supports streaming.
 
-It is powered by [Streamdown](https://github.com/vercel/streamdown) (which in turn is powered by [react-markdown](https://github.com/remarkjs/react-markdown), and supports the same props.
+It is powered by [Streamdown](https://github.com/vercel/streamdown) (which in turn is powered by [react-markdown](https://github.com/remarkjs/react-markdown)), and supports the same props.
 
 ### Usage
 
