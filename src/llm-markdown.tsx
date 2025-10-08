@@ -88,7 +88,7 @@ export function LlmMarkdown(
     return (
         <div
             ref={ref}
-            className={fade === false ? undefined : styles.fadecontainer}
+            className={fade === false ? undefined : (styles as any).fadecontainer}
             style={
                 {
                     '--convo-kit-llm-fade-start': 0,
