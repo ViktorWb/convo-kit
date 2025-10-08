@@ -1,14 +1,16 @@
 import React from 'react'
 import { Streamdown } from 'streamdown'
+import ReactMarkdown from 'react-markdown'
 
 /**
  * Wrapper of [streamdown](https://github.com/vercel/streamdown) that slightly adjusts the default spacing and text wrapping.
  */
-export function Markdown(props: React.ComponentProps<typeof Streamdown>) {
+export function Markdown(props: React.ComponentProps<typeof Streamdown> & { component?: typeof Streamdown | typeof ReactMarkdown }) {
     const { remarkPlugins, components, ...rest } = props
+    const Component = props.component || Streamdown
 
     return (
-        <Streamdown
+        <Component
             remarkPlugins={[
                 () => {
                     return (tree) => {

@@ -1,5 +1,6 @@
 import React from 'react'
 import sharp from 'sharp'
+import ReactMarkdown from 'react-markdown'
 import { groupMessages } from './groupMessages'
 import { Markdown } from './markdown'
 import { ChatMessage, ToolCall, ToolDefinition } from './types'
@@ -138,7 +139,7 @@ export async function renderMessagesToText<D, T extends readonly ToolDefinition[
                                         <b>{toText.assistant(language === 'en' ? 'Assistant' : 'Assistent', msg.data)}:</b>
                                         <br />
                                     </p>
-                                    <Markdown>{msg.content}</Markdown>
+                                    <Markdown component={ReactMarkdown}>{msg.content}</Markdown>
                                 </div>
                             )
                         } else if (msg.role === 'toolCall') {
