@@ -2,7 +2,7 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Markdown } from './markdown'
-import * as styles from './llm-markdown.module.css'
+import * as styles from '../css/llm-markdown.module.css'
 
 /**
  * React component that renders streaming markdown output.

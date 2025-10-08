@@ -1,12 +1,10 @@
 {
-  "name": "convo-kit",
+  "name": "@viktorw/convo-kit",
   "author": "ViktorWb",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "cd demo && next dev",
-    "prepack": "rm -rf dist && tsc",
-    "postinstall": "tsc"
+    "prepack": "rm -rf dist && tsc"
   },
   "dependencies": {
     "sharp": "^0.34",
@@ -18,15 +16,11 @@
   "browser": "./dist/browser.js",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "browser": "./dist/browser.js"
+      "browser": "./dist/browser.js",
+      "node": "./dist/index.js",
+      "require": "./dist/index.js"
     },
-      "./mantine": {
-      "import": "./dist/mantine/index.js",
-      "require": "./dist/mantine/index.js",
-      "browser": "./dist/mantine/browser.js"
-    }
+    "./mantine": "./dist/mantine/index.js"
   },
   "devDependencies": {
     "@mantine/core": "^8",
