@@ -6,7 +6,9 @@
         "jsx": "react",
         "allowSyntheticDefaultImports": true,
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "declaration": true,
+        "declarationMap": true
     },
     "exclude": ["demo"]
 }

@@ -18,9 +18,13 @@
     ".": {
       "browser": "./dist/browser.js",
       "node": "./dist/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
-    "./mantine": "./dist/mantine/index.js"
+    "./mantine": {
+      "types": "./dist/mantine/index.d.ts",
+      "default": "./dist/mantine/index.js"
+    }
   },
   "devDependencies": {
     "@mantine/core": "^8",
