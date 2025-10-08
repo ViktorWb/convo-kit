@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-      "dev": "cd demo && next dev",
-      "postinstall": "tsc"
+    "dev": "cd demo && next dev",
+    "prepack": "rm -rf dist && tsc",
+    "postinstall": "tsc"
   },
   "dependencies": {
     "sharp": "^0.34",
@@ -13,8 +14,20 @@
     "uuid": "^13",
     "zod": "^4"
   },
-  "main": "./src/index.js",
-  "browser": "./src/browser.js",
+  "main": "./dist/index.js",
+  "browser": "./dist/browser.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "browser": "./dist/browser.js"
+    },
+      "./mantine": {
+      "import": "./dist/mantine/index.js",
+      "require": "./dist/mantine/index.js",
+      "browser": "./dist/mantine/browser.js"
+    }
+  },
   "devDependencies": {
     "@mantine/core": "^8",
     "@types/node": "^22",
