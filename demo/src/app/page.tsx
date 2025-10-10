@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Flex, Text, Title } from '@mantine/core'
 import { LlmMarkdown } from '@/../../'
-import { MantineLlmMarkdown } from '@/../../mantine'
+import { MantineLlmMarkdown } from '@/../../src/mantine'
 
 let text = `# Heading 1
 ## Heading 2

@@ -34,8 +34,12 @@ export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefini
             if (!container) {
                 return
             }
-            scrollIsBottomRef.current =
-                chatUiRef.current.offsetTop + chatUiRef.current.clientHeight - (container.offsetTop + container.clientHeight) <= container.scrollTop + 5
+
+            const chatUiRect = chatUiRef.current.getBoundingClientRect()
+            const containerRect = container.getBoundingClientRect()
+            const chatUiBottom = chatUiRect.bottom + window.scrollY
+            const containerBottom = props.scrollContainer ? containerRect.bottom + window.scrollY : container.clientHeight + window.scrollY
+            scrollIsBottomRef.current = chatUiBottom - containerBottom <= 5
         }
         if (props.scrollContainer) {
             const container = props.scrollContainer()
@@ -62,12 +66,17 @@ export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefini
         if (!container) {
             return
         }
-        const target = chatUiRef.current.offsetTop + chatUiRef.current.clientHeight - (container.offsetTop + container.clientHeight)
-        if (target > container.scrollTop) {
+        const chatUiRect = chatUiRef.current.getBoundingClientRect()
+        const containerRect = container.getBoundingClientRect()
+        const chatUiBottom = chatUiRect.bottom + window.scrollY
+        const containerBottom = props.scrollContainer ? containerRect.bottom + window.scrollY : container.clientHeight + window.scrollY
+
+        const addToScroll = chatUiBottom - containerBottom
+        if (addToScroll > 0) {
             if (props.scrollContainer) {
-                container.scrollTo(0, target)
+                container.scrollTo(0, container.scrollTop + addToScroll)
             } else {
-                window.scrollTo(0, target)
+                window.scrollTo(0, container.scrollTop + addToScroll)
             }
         }
     }

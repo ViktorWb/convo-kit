@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Box, Button, Paper, Text, TextInput } from '@mantine/core'
 import { ChatMessage, ChatUi } from '@/../../'
-import { MantineLlmMarkdown } from '@/../../mantine'
+import { MantineLlmMarkdown } from '@/../../src/mantine'
 
 const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantMessageComponent'] = (props) => {
     return (

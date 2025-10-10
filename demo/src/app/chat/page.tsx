@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react'
 import { Box, Button, Paper, Text, TextInput } from '@mantine/core'
 import { ChatMessage, ChatUi } from '@/../../'
-import { MantineLlmMarkdown } from '@/../../mantine'
+import { MantineLlmMarkdown } from '@/../../src/mantine'
 
 const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantMessageComponent'] = (props) => {
     return (
@@ -44,7 +44,7 @@ export default function () {
                     This demo shows the sticky-scroll behaviour for contained scroll areas. When the user scrolls to the bottom of the container, the scroll is
                     sticks to the bottom as new messages are added. When the user is not at the bottom, the scroll stays at the current scroll position.
                 </Text>
-                <div ref={scrollContainerRef} style={{ maxHeight: '30em', overflow: 'auto' }}>
+                <div ref={scrollContainerRef} style={{ maxHeight: '30em', overflow: 'auto', position: 'relative' }}>
                     <ChatUi
                         messages={messages}
                         scrollContainer={() => scrollContainerRef.current}
@@ -63,6 +63,9 @@ export default function () {
                             </Text>
                         }
                     />
+                    <Text size="sm" my="2em">
+                        Content below the chat interface.
+                    </Text>
                 </div>
                 <TextInput
                     placeholder="Type something.."
