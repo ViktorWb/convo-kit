@@ -1,7 +1,7 @@
 {
   "name": "@viktorw/convo-kit",
   "author": "ViktorWb",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "scripts": {
     "dev": "cd demo && next dev",
     "prepack": "rm -rf dist && tsc"
