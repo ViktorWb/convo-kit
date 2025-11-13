@@ -8,7 +8,7 @@ export function ScrollBox(
         renderContent: (onExpanded: () => void) => React.ReactNode
     } & Omit<ComponentProps<'div'>, 'children'>
 ) {
-    const { scrollContainer, ...rest } = props
+    const { scrollContainer, renderContent, ...rest } = props
 
     const chatUiRef = useRef<HTMLDivElement>(null)
 
