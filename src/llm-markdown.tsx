@@ -58,7 +58,8 @@ export function LlmMarkdown(
     showContent = cleanTruncatedLink(showContent)
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        let interval: any
+        const iterate = () => {
             setShow((old) => {
                 if (old === children.length) {
                     clearInterval(interval)
@@ -66,7 +67,9 @@ export function LlmMarkdown(
                 }
                 return Math.min(old + Math.max(Math.floor(throttleFunction(100, old, children.length).addChars), 0), children.length)
             })
-        }, 100)
+        }
+        interval = setInterval(iterate, 100)
+        iterate()
         return () => {
             clearInterval(interval)
         }
