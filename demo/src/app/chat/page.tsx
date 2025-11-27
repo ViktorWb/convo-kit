@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import { Box, Button, Paper, Text, TextInput } from '@mantine/core'
-import { ChatMessage, ChatUi } from '@/../../'
+import { ChatMessage, ChatUi } from '@/../../src/browser'
 import { MantineLlmMarkdown } from '@/../../src/mantine'
 
 const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantMessageComponent'] = (props) => {
@@ -17,8 +17,6 @@ const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantM
 
 export default function () {
     const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', content: 'Welcome to this demo' }])
-
-    const scrollContainerRef = useRef<HTMLDivElement>(null)
 
     const [value, setValue] = useState('')
 
@@ -44,29 +42,27 @@ export default function () {
                     This demo shows the sticky-scroll behaviour for contained scroll areas. When the user scrolls to the bottom of the container, the scroll is
                     sticks to the bottom as new messages are added. When the user is not at the bottom, the scroll stays at the current scroll position.
                 </Text>
-                <div ref={scrollContainerRef} style={{ maxHeight: '30em', overflow: 'auto', position: 'relative' }}>
-                    <ChatUi
-                        messages={messages}
-                        scrollContainer={() => scrollContainerRef.current}
-                        UserMessageComponent={(props) =>
-                            props.content.type === 'text' ? (
-                                <Paper maw="30em" ml="auto" mt="0.5em" bg="#ABF" p="0.5em">
-                                    <Text>{props.content.content}</Text>
-                                </Paper>
-                            ) : null
-                        }
-                        AssistantMessageComponent={AssistantMessageComponent}
-                        ToolCallComponent={() => null}
-                        footer={
-                            <Text mt="0.5em" size="sm">
-                                Footer
-                            </Text>
-                        }
-                    />
-                    <Text size="sm" my="2em">
-                        Content below the chat interface.
-                    </Text>
-                </div>
+                <ChatUi
+                    messages={messages}
+                    maxHeight="30em"
+                    UserMessageComponent={(props) =>
+                        props.content.type === 'text' ? (
+                            <Paper maw="30em" ml="auto" mt="0.5em" bg="#ABF" p="0.5em">
+                                <Text>{props.content.content}</Text>
+                            </Paper>
+                        ) : null
+                    }
+                    AssistantMessageComponent={AssistantMessageComponent}
+                    ToolCallComponent={() => null}
+                    footer={
+                        <Text mt="0.5em" size="sm">
+                            Footer
+                        </Text>
+                    }
+                />
+                <Text size="sm" my="2em">
+                    Content below the chat interface.
+                </Text>
                 <TextInput
                     placeholder="Type something.."
                     value={value}

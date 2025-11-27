@@ -2,21 +2,22 @@ import React, { ComponentProps, useCallback, useEffect, useMemo, useRef } from '
 import { groupMessages } from './groupMessages'
 import { ChatMessageContent, ChatMessage, ToolCall, ToolDefinition } from './types'
 
-export function ScrollBox(
+export function StickyBox(
     props: {
         scrollContainer?: () => HTMLElement
         renderContent: (onExpanded: () => void) => React.ReactNode
+        onExpanded?: () => void
     } & Omit<ComponentProps<'div'>, 'children'>
 ) {
-    const { scrollContainer, renderContent, ...rest } = props
+    const { scrollContainer, renderContent, onExpanded, ...rest } = props
 
-    const chatUiRef = useRef<HTMLDivElement>(null)
+    const divRef = useRef<HTMLDivElement>(null)
 
     const scrollIsBottomRef = useRef(true)
     const lastShowContentTimestampRef = useRef(0)
     useEffect(() => {
         const cb = () => {
-            if (!chatUiRef.current || Date.now() - lastShowContentTimestampRef.current < 200) {
+            if (!divRef.current || Date.now() - lastShowContentTimestampRef.current < 200) {
                 return
             }
             const container = props.scrollContainer ? props.scrollContainer() : document.documentElement
@@ -24,7 +25,7 @@ export function ScrollBox(
                 return
             }
 
-            const chatUiRect = chatUiRef.current.getBoundingClientRect()
+            const chatUiRect = divRef.current.getBoundingClientRect()
             const containerRect = container.getBoundingClientRect()
             const chatUiBottom = chatUiRect.bottom + window.scrollY
             const containerBottom = props.scrollContainer ? containerRect.bottom + window.scrollY : container.clientHeight + window.scrollY
@@ -48,14 +49,16 @@ export function ScrollBox(
     }, [])
 
     function scrollToBottomIfNeeded() {
-        if (!scrollIsBottomRef.current || !chatUiRef.current) {
+        if (!scrollIsBottomRef.current || !divRef.current) {
+            props.onExpanded && props.onExpanded()
             return
         }
         const container = props.scrollContainer ? props.scrollContainer() : document.documentElement
         if (!container) {
+            props.onExpanded && props.onExpanded()
             return
         }
-        const chatUiRect = chatUiRef.current.getBoundingClientRect()
+        const chatUiRect = divRef.current.getBoundingClientRect()
         const containerRect = container.getBoundingClientRect()
         const chatUiBottom = chatUiRect.bottom + window.scrollY
         const containerBottom = props.scrollContainer ? containerRect.bottom + window.scrollY : container.clientHeight + window.scrollY
@@ -68,6 +71,7 @@ export function ScrollBox(
                 window.scrollTo(0, container.scrollTop + addToScroll)
             }
         }
+        props.onExpanded && props.onExpanded()
     }
 
     useEffect(() => {
@@ -75,13 +79,36 @@ export function ScrollBox(
     }, [props.renderContent])
 
     return (
-        <div ref={chatUiRef} {...rest}>
+        <div ref={divRef} {...rest}>
             {props.renderContent(() => {
                 lastShowContentTimestampRef.current = Date.now()
                 scrollToBottomIfNeeded()
             })}
         </div>
     )
+}
+
+function ScrollBoxInner(props: Pick<React.ComponentProps<typeof ScrollBox>, 'maxHeight' | 'renderContent'> & { onExpanded: () => void }) {
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+    return (
+        <div ref={scrollContainerRef} style={{ maxHeight: props.maxHeight, overflow: 'auto' }}>
+            <StickyBox scrollContainer={() => scrollContainerRef.current} renderContent={props.renderContent} onExpanded={props.onExpanded} />
+        </div>
+    )
+}
+
+export function ScrollBox(props: Omit<React.ComponentProps<typeof StickyBox>, 'scrollContainer'> & { maxHeight?: string | number }) {
+    const { renderContent, onExpanded, maxHeight, ...rest } = props
+
+    const outerRenderContent = useCallback(
+        (onExpanded: () => void) => {
+            return <ScrollBoxInner maxHeight={props.maxHeight} renderContent={props.renderContent} onExpanded={onExpanded} />
+        },
+        [props.renderContent, props.maxHeight]
+    )
+
+    return <StickyBox renderContent={outerRenderContent} {...rest}></StickyBox>
 }
 
 export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefinition[]>(
@@ -94,7 +121,7 @@ export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefini
             text: string
             onContentShow: (text: string) => void
         }>
-        scrollContainer?: () => HTMLElement
+        maxHeight?: string | number
         ToolCallComponent: React.ComponentType<{ messageIndex: number; groupedMessages: ChatMessage<T>[]; toolCall: ToolCall<T> }>
         footer?: React.ReactNode
     } & ComponentProps<'div'>
