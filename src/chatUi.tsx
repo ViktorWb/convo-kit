@@ -92,7 +92,10 @@ function ScrollBoxInner(props: Pick<React.ComponentProps<typeof ScrollBox>, 'max
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
     return (
-        <div ref={scrollContainerRef} style={{ maxHeight: props.maxHeight, overflow: 'auto' }}>
+        <div
+            ref={scrollContainerRef}
+            style={{ maxHeight: props.maxHeight, overflow: typeof props.maxHeight === 'string' || typeof props.maxHeight === 'number' ? 'auto' : undefined }}
+        >
             <StickyBox scrollContainer={() => scrollContainerRef.current} renderContent={props.renderContent} onExpanded={props.onExpanded} />
         </div>
     )
