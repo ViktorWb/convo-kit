@@ -14,6 +14,7 @@ export function LayoutClient(props: React.PropsWithChildren<{}>) {
                     <Tabs.Tab value="md">Markdown</Tabs.Tab>
                     <Tabs.Tab value="chat">Chat UI</Tabs.Tab>
                     <Tabs.Tab value="fullscreen-chat">Fullscreen chat UI</Tabs.Tab>
+                    <Tabs.Tab value="infinite">Infinite stream</Tabs.Tab>
                 </Tabs.List>
             </Tabs>
             <main style={{ padding: '2em' }}>{props.children}</main>

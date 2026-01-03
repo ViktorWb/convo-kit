@@ -54,11 +54,11 @@ export default function () {
                     }
                     AssistantMessageComponent={AssistantMessageComponent}
                     ToolCallComponent={() => null}
-                    footer={
-                        <Text mt="0.5em" size="sm">
-                            Footer
+                    footer={(isAtBottom, scrollToBottom) => (
+                        <Text mt="0.5em" size="sm" onClick={scrollToBottom}>
+                            Footer ({isAtBottom ? ' at bottom' : 'not at bottom'})
                         </Text>
-                    }
+                    )}
                 />
                 <Text size="sm" my="2em">
                     Content below the chat interface.

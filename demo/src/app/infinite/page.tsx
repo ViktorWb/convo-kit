@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Button, Paper, Text, TextInput } from '@mantine/core'
 import { ChatMessage, ChatUi } from '@/../../src/browser'
 import { MantineLlmMarkdown } from '@/../../src/mantine'
@@ -20,30 +20,31 @@ export default function () {
 
     const [value, setValue] = useState('')
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMessages((old) => [
+                ...old,
+                {
+                    role: 'assistant',
+                    content: 'Hi!\n\nThis is a test.\n\n- A\n\n- B\n\n- C\n\n- D'
+                }
+            ])
+        }, 500)
+        return () => {
+            clearInterval(interval)
+        }
+    }, [])
+
     return (
         <>
-            <Button
-                mt="1em"
-                style={{ position: 'fixed', top: '3em' }}
-                onClick={() => {
-                    setMessages([
-                        ...messages,
-                        {
-                            role: 'assistant',
-                            content: 'Hi!\n\nThis is a test.\n\n- A\n\n- B\n\n- C\n\n- D'
-                        }
-                    ])
-                }}
-            >
-                Add assistant answer
-            </Button>
             <Box maw="60em" mx="auto">
                 <Text size="sm" maw="80ch">
-                    This demo shows the sticky-scroll behaviour for fullscreen scroll areas. When the user scrolls to the bottom of the container, the scroll is
+                    This demo shows the sticky-scroll behaviour for contained scroll areas. When the user scrolls to the bottom of the container, the scroll is
                     sticks to the bottom as new messages are added. When the user is not at the bottom, the scroll stays at the current scroll position.
                 </Text>
                 <ChatUi
                     messages={messages}
+                    maxHeight="30em"
                     UserMessageComponent={(props) =>
                         props.content.type === 'text' ? (
                             <Paper maw="30em" ml="auto" mt="0.5em" bg="#ABF" p="0.5em">
@@ -54,29 +55,25 @@ export default function () {
                     AssistantMessageComponent={AssistantMessageComponent}
                     ToolCallComponent={() => null}
                     footer={(isAtBottom, scrollToBottom) => (
-                        <>
-                            <Text mt="0.5em" size="sm" onClick={scrollToBottom}>
-                                Footer ({isAtBottom ? ' at bottom' : 'not at bottom'})
-                            </Text>
-                            <Box pb={32} style={{ position: 'sticky', bottom: 0 }}>
-                                <TextInput
-                                    placeholder="Type something.."
-                                    value={value}
-                                    onChange={(ev) => setValue(ev.target.value)}
-                                    onKeyDown={(ev) => {
-                                        if (ev.key === 'Enter' && !ev.shiftKey) {
-                                            setMessages([...messages, { role: 'user', content: [{ type: 'text', content: value }] }])
-                                            setValue('')
-                                        }
-                                    }}
-                                />
-                            </Box>
-                        </>
+                        <Text mt="0.5em" size="sm" onClick={scrollToBottom}>
+                            Footer ({isAtBottom ? ' at bottom' : 'not at bottom'})
+                        </Text>
                     )}
                 />
                 <Text size="sm" my="2em">
                     Content below the chat interface.
                 </Text>
+                <TextInput
+                    placeholder="Type something.."
+                    value={value}
+                    onChange={(ev) => setValue(ev.target.value)}
+                    onKeyDown={(ev) => {
+                        if (ev.key === 'Enter' && !ev.shiftKey) {
+                            setMessages([...messages, { role: 'user', content: [{ type: 'text', content: value }] }])
+                            setValue('')
+                        }
+                    }}
+                />
             </Box>
         </>
     )
