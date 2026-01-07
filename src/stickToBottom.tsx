@@ -126,8 +126,7 @@ export function StickyBox(
         }
 
         const range = selection.getRangeAt(0)
-        const container = props.scrollContainer()
-        return range.commonAncestorContainer.contains(container) || container?.contains(range.commonAncestorContainer)
+        return range.commonAncestorContainer.contains(divRef.current) || divRef.current?.contains(range.commonAncestorContainer)
     }, [props.scrollContainer])
 
     const chatUiBottom = useCallback(() => {
