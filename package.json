@@ -9,7 +9,7 @@
   "dependencies": {
     "react-markdown": "^10",
     "sharp": "^0.34",
-    "streamdown": "^1",
+    "streaming-markdown": "^0.2",
     "uuid": "^13",
     "zod": "^4"
   },

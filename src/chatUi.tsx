@@ -6,12 +6,13 @@ import { ScrollBox } from './stickToBottom'
 export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefinition[]>(
     props: {
         messages: ChatMessage<T>[]
+        streaming: boolean
         UserMessageComponent: React.ComponentType<{ messageIndex: number; groupedMessages: ChatMessage<T>[]; content: ChatMessageContent }>
         AssistantMessageComponent: React.ComponentType<{
             messageIndex: number
             groupedMessages: ChatMessage<T>[]
             text: string
-            onContentShow: (text: string) => void
+            streaming: boolean
         }>
         maxHeight?: string | number
         ToolCallComponent: React.ComponentType<{ messageIndex: number; groupedMessages: ChatMessage<T>[]; toolCall: ToolCall<T> }>
@@ -47,7 +48,7 @@ export function ChatUi<T extends readonly ToolDefinition[] = readonly ToolDefini
                                         messageIndex={i}
                                         groupedMessages={arr.map((x) => x.msg)}
                                         text={msg.content}
-                                        onContentShow={() => {}}
+                                        streaming={props.streaming && i === arr.length - 1}
                                     />
                                 )
                             }

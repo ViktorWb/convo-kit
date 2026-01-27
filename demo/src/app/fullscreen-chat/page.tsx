@@ -2,15 +2,14 @@
 
 import { useState } from 'react'
 import { Box, Button, Paper, Text, TextInput } from '@mantine/core'
-import { ChatMessage, ChatUi } from '@/../../src/browser'
-import { MantineLlmMarkdown } from '@/../../src/mantine'
+import { ChatMessage, ChatUi, StreamingMarkdown } from '@/../../src/browser'
 
 const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantMessageComponent'] = (props) => {
     return (
         <div style={{ backgroundColor: '#CCC', width: '60%', marginTop: '0.5em', padding: '0.5em', borderRadius: '0.5em' }}>
-            <MantineLlmMarkdown fade={false} textProps={{ size: 'sm' }} onContentShow={props.onContentShow}>
+            <StreamingMarkdown fade={false} streaming={props.streaming}>
                 {props.text}
-            </MantineLlmMarkdown>
+            </StreamingMarkdown>
         </div>
     )
 }
@@ -49,6 +48,7 @@ export default function () {
                 </Text>
                 <ChatUi
                     messages={messages}
+                    streaming={false}
                     UserMessageComponent={(props) =>
                         props.content.type === 'text' ? (
                             <Paper maw="30em" ml="auto" mt="0.5em" bg="#ABF" p="0.5em">

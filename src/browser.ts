@@ -1,6 +1,6 @@
 export * from './chatUi'
 export * from './groupMessages'
-export * from './llm-markdown'
+export * from './fadeContainer'
 export * from './markdown'
 export * from './stickToBottom'
 export * from './streamClient'

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Flex, Text, Title } from '@mantine/core'
-import { LlmMarkdown } from '@/../../'
-import { MantineLlmMarkdown } from '@/../../src/mantine'
+import { StreamingMarkdown } from '../../../src/markdown'
 
 let text = `# Heading 1
 ## Heading 2
@@ -60,12 +59,9 @@ export default function () {
             </Text>
             <Flex gap="15em" wrap="wrap">
                 <div>
-                    <Title>Unstyled</Title>
-                    <LlmMarkdown>{text.slice(0, show)}</LlmMarkdown>
-                </div>
-                <div>
-                    <Title>Mantine styled</Title>
-                    <MantineLlmMarkdown>{text.slice(0, show)}</MantineLlmMarkdown>
+                    <StreamingMarkdown streaming={show < text.length} fade={false}>
+                        {text.slice(0, show)}
+                    </StreamingMarkdown>
                 </div>
             </Flex>
         </>
