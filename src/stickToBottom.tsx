@@ -106,7 +106,6 @@ export function StickyBox(
     const [stateIsAtBottom, setStateIsAtBottom] = useState(false)
 
     const ignoreScrollTop = useRef(0)
-    const escapedFromLock = useRef(false)
     const isAtBottom = useRef(false)
     const resizeDifference = useRef(0)
 
@@ -148,7 +147,10 @@ export function StickyBox(
     }, [props.scrollContainer])
 
     const scrollTop = useCallback(() => {
-        return props.scrollContainer ? props.scrollContainer()?.scrollTop ?? 0 : window.scrollY
+        if (props.scrollContainer) {
+            return props.scrollContainer()?.scrollTop ?? 0
+        }
+        return window.scrollY
     }, [props.scrollContainer])
 
     const setScrollTop = useCallback(
@@ -196,6 +198,18 @@ export function StickyBox(
     const springScroll = useSpringScroll(scrollTop, setScrollTop, isSelecting, props.springConfig)
 
     useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (isNearBottom()) {
+                updateIsAtBottom(true)
+                springScroll.scrollTo(targetScrollTop())
+            }
+        }, 500)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [])
+
+    useEffect(() => {
         let lastScrollTop = null
         const cb = () => {
             const _scrollTop = scrollTop()
@@ -215,7 +229,7 @@ export function StickyBox(
             }
 
             const isScrollingDown = _scrollTop > _lastScrollTop
-            const isScrollingUp = _scrollTop < _lastScrollTop
+            const isScrollingUp = _scrollTop < _lastScrollTop - 2
 
             /**
              * Scroll events may come before a ResizeObserver event,
@@ -233,26 +247,19 @@ export function StickyBox(
                 }
 
                 if (isSelecting()) {
-                    escapedFromLock.current = true
                     updateIsAtBottom(false)
+                    springScroll.stop()
                     return
                 }
 
                 if (isScrollingUp) {
-                    escapedFromLock.current = true
                     updateIsAtBottom(false)
-                }
-
-                if (isScrollingDown) {
-                    escapedFromLock.current = false
-                }
-
-                if (!escapedFromLock.current && isNearBottom()) {
-                    updateIsAtBottom(true)
-                }
-
-                if (!isAtBottom.current) {
                     springScroll.stop()
+                    return
+                }
+
+                if (isNearBottom()) {
+                    updateIsAtBottom(true)
                 }
             }, 1)
         }
@@ -292,14 +299,6 @@ export function StickyBox(
 
             resizeDifference.current = difference
 
-            /**
-             * Sometimes the browser can overscroll past the target,
-             * so check for this and adjust appropriately.
-             */
-            if (scrollTop() > targetScrollTop()) {
-                setScrollTop(targetScrollTop())
-            }
-
             if (difference < 0) {
                 /**
                  * If it's a negative resize, check if we're near the bottom if
@@ -307,7 +306,6 @@ export function StickyBox(
                  * could have caused the container to be at the bottom.
                  */
                 if (isNearBottom()) {
-                    escapedFromLock.current = false
                     updateIsAtBottom(true)
                 }
             }

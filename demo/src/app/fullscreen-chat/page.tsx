@@ -16,7 +16,12 @@ const AssistantMessageComponent: React.ComponentProps<typeof ChatUi>['AssistantM
 }
 
 export default function () {
-    const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'assistant', content: 'Welcome to this demo' }])
+    const [messages, setMessages] = useState<ChatMessage[]>([
+        {
+            role: 'assistant',
+            content: 'Welcome to this demo'
+        }
+    ])
 
     const [value, setValue] = useState('')
 
@@ -56,11 +61,11 @@ export default function () {
                     footer={(isAtBottom, scrollToBottom) => (
                         <>
                             <Text mt="0.5em" size="sm" onClick={scrollToBottom}>
-                                Footer ({isAtBottom ? ' at bottom' : 'not at bottom'})
+                                Footer
                             </Text>
                             <Box pb={32} style={{ position: 'sticky', bottom: 0 }}>
                                 <TextInput
-                                    placeholder="Type something.."
+                                    placeholder={`Type something.. (${isAtBottom ? ' at bottom' : 'not at bottom'})`}
                                     value={value}
                                     onChange={(ev) => setValue(ev.target.value)}
                                     onKeyDown={(ev) => {
