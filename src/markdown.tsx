@@ -118,6 +118,11 @@ export function StreamingMarkdown({
                 smd.parser_write(parser.current, children.slice(shown.current))
                 shown.current = children.length
                 onContentShow && onContentShow(children.slice(0, shown.current))
+                if (!streaming) {
+                    if (!streaming) {
+                        smd.parser_end(parser.current)
+                    }
+                }
             }
             return
         }
@@ -161,12 +166,12 @@ export function StreamingMarkdown({
                 smd.parser_write(parser.current, children.slice(shown.current, shown.current + charsToAdd))
                 shown.current += charsToAdd
                 onContentShow && onContentShow(children.slice(0, shown.current))
-                if (shown.current === children.length) {
-                    if (!streaming) {
-                        smd.parser_end(parser.current)
-                    }
-                    return
+            }
+            if (shown.current === children.length) {
+                if (!streaming) {
+                    smd.parser_end(parser.current)
                 }
+                return
             }
             frameId = requestAnimationFrame(append)
         }
