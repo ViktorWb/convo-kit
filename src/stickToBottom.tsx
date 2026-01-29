@@ -210,6 +210,7 @@ export function StickyBox(
     }, [])
 
     useEffect(() => {
+        let cancelled = false
         let lastScrollTop = null
         const cb = () => {
             const _scrollTop = scrollTop()
@@ -228,7 +229,6 @@ export function StickyBox(
                 _lastScrollTop = _ignoreScrollTop
             }
 
-            const isScrollingDown = _scrollTop > _lastScrollTop
             const isScrollingUp = _scrollTop < _lastScrollTop - 2
 
             /**
@@ -239,6 +239,10 @@ export function StickyBox(
              * @see https://github.com/WICG/resize-observer/issues/25#issuecomment-248757228
              */
             setTimeout(() => {
+                if (cancelled) {
+                    return
+                }
+
                 /**
                  * When theres a resize difference ignore the resize event.
                  */
@@ -271,6 +275,7 @@ export function StickyBox(
         container.addEventListener('scroll', cb, { passive: true })
         return () => {
             container.removeEventListener('scroll', cb)
+            cancelled = true
         }
     }, [props.scrollContainer, springScroll.stop])
 
