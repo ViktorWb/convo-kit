@@ -61,6 +61,7 @@ export function StreamingMarkdown({
     streaming,
     fade = true,
     fadeDuration,
+    skipToEnd = false,
     ...rest
 }: {
     children: string
@@ -68,6 +69,7 @@ export function StreamingMarkdown({
     streaming: boolean
     fade?: boolean
     fadeDuration?: number
+    skipToEnd?: boolean
 } & Omit<React.ComponentProps<'div'>, 'children'>) {
     // Convert [This is a link](https://go -> This is a link
     // and [This is a link -> This is a link
@@ -110,6 +112,14 @@ export function StreamingMarkdown({
         if (!parser.current) {
             const renderer = smd.default_renderer(divRef.current)
             parser.current = smd.parser(renderer)
+        }
+        if (skipToEnd) {
+            if (shown.current < children.length) {
+                smd.parser_write(parser.current, children.slice(shown.current))
+                shown.current = children.length
+                onContentShow && onContentShow(children.slice(0, shown.current))
+            }
+            return
         }
 
         const now = performance.now()
@@ -164,7 +174,7 @@ export function StreamingMarkdown({
         return () => {
             cancelAnimationFrame(frameId)
         }
-    }, [children, streaming])
+    }, [children, streaming, skipToEnd])
 
     if (fade) {
         return <FadeContainer ref={divRef} duration={fadeDuration} {...rest} />
