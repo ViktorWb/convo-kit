@@ -1,8 +1,4 @@
 import { Metadata } from 'next'
-import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core'
-import '@mantine/core/styles.css'
-import { ThemeProvider } from './theme'
-import { LayoutClient } from './layoutClient'
 
 export const metadata: Metadata = {
     title: 'LLM React Demo',
@@ -11,14 +7,9 @@ export const metadata: Metadata = {
 
 export default function ({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en" {...mantineHtmlProps}>
-            <head>
-                <ColorSchemeScript />
-            </head>
+        <html lang="en">
             <body>
-                <ThemeProvider>
-                    <LayoutClient>{children}</LayoutClient>
-                </ThemeProvider>
+                <main style={{ padding: '2em' }}>{children}</main>
             </body>
         </html>
     )

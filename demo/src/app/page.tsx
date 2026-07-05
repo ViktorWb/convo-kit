@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Flex, Text, Title } from '@mantine/core'
 import { StreamingMarkdown } from '../../../src/markdown'
 
 let text = `# Heading 1
@@ -46,24 +45,24 @@ export default function () {
 
     return (
         <>
-            <Text size="sm" maw="80ch">
+            <p style={{ fontSize: '0.875rem', maxWidth: '80ch' }}>
                 This demo shows the streaming markdown components. This streaming markdown component:
-            </Text>
-            <Text component="ul" size="sm" maw="80ch" my="1em">
+            </p>
+            <ul style={{ fontSize: '0.875rem', maxWidth: '80ch', margin: '1em 0' }}>
                 <li>
                     Renders partial markdown. For example, while Markdown is streaming links will be broken. These links are rendered as text and only made
                     clickable once the full link is present.
                 </li>
                 <li>Displays character-by-character for smoother appearance, even if the LLM service outputs large chunks.</li>
                 <li>Applies a fade-in effect as content is added quickly.</li>
-            </Text>
-            <Flex gap="15em" wrap="wrap">
+            </ul>
+            <div style={{ display: 'flex', gap: '15em', flexWrap: 'wrap' }}>
                 <div>
                     <StreamingMarkdown streaming={show < text.length} fade={false}>
                         {text.slice(0, show)}
                     </StreamingMarkdown>
                 </div>
-            </Flex>
+            </div>
         </>
     )
 }

@@ -1,38 +1,29 @@
 {
   "name": "@viktorw/convo-kit",
   "author": "ViktorWb",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "scripts": {
     "dev": "cd demo && next dev",
     "prepack": "rm -rf dist && tsc"
   },
   "dependencies": {
-    "react-markdown": "^10",
-    "sharp": "^0.34",
-    "streaming-markdown": "^0.2",
-    "uuid": "^13",
-    "zod": "^4"
+    "streaming-markdown": "^0.2"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "main": "./dist/index.js",
-  "browser": "./dist/browser.js",
   "exports": {
     ".": {
-      "browser": "./dist/browser.js",
-      "node": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./mantine": {
-      "types": "./dist/mantine/index.d.ts",
-      "default": "./dist/mantine/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "devDependencies": {
-    "@mantine/core": "^8",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "date-fns": "^4",
     "next": "^15",
     "react": "^19",
     "react-dom": "^19",
