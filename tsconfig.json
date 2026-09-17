@@ -10,5 +10,5 @@
         "declaration": true,
         "declarationMap": true
     },
-    "exclude": ["demo"]
+    "exclude": ["demo", "test", "vitest.config.ts"]
 }

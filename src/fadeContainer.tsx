@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react'
 import * as styles from '../css/fade-container.module.css'
 
-export function FadeContainer({ children, duration = 500, style, ref, ...rest }: React.ComponentProps<'div'> & { duration?: number }) {
+export function FadeContainer({ children, duration = 500, style, className, ref, ...rest }: React.ComponentProps<'div'> & { duration?: number }) {
     if (typeof duration !== 'number') {
         duration = 500
     }
@@ -45,7 +45,7 @@ export function FadeContainer({ children, duration = 500, style, ref, ...rest }:
     return (
         <div
             ref={resolvedRef}
-            className={(styles as any).fadecontainer}
+            className={[(styles as any).fadecontainer, className].filter(Boolean).join(' ')}
             style={
                 {
                     '--convo-kit-llm-fade-start': 0,

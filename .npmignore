@@ -1,3 +1,5 @@
 demo
 tsconfig.json
 global.d.ts
+test
+vitest.config.ts

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import { useEffect, useRef } from 'react'
 import * as smd from 'streaming-markdown'
 import { FadeContainer } from './fadeContainer'
@@ -55,6 +55,34 @@ const components = {
     }
 }
 
+// Convert [This is a link](https://go -> This is a link
+// and [This is a link -> This is a link
+// because streamdown doesn't handle this ATM
+function cleanTruncatedLink(md: string): string {
+    let doNotScanText = md.slice(0, -100)
+    let scanText = md.slice(-100)
+
+    // Regex: <before text>[title](href
+    const match = scanText.match(/([\s\S]*)\[([^\]]+)\]\([^\)]*$/)
+    if (match) {
+        const before = match[1]
+        const title = match[2]
+        return `${doNotScanText}${before}${title}`
+    }
+
+    // Regex: <before text>[title
+    // Or: <before text>[title]
+    // The title may still be empty, so that a bare trailing `[` is held back too.
+    const match2 = scanText.match(/([\s\S]*)\[([^\]]*)\]?$/)
+    if (match2) {
+        const before = match2[1]
+        const title = match2[2]
+        return `${doNotScanText}${before}${title}`
+    }
+
+    return md
+}
+
 export function StreamingMarkdown({
     children,
     onContentShow,
@@ -71,57 +99,56 @@ export function StreamingMarkdown({
     fadeDuration?: number
     skipToEnd?: boolean
 } & Omit<React.ComponentProps<'div'>, 'children'>) {
-    // Convert [This is a link](https://go -> This is a link
-    // and [This is a link -> This is a link
-    // because streamdown doesn't handle this ATM
-    function cleanTruncatedLink(md: string): string {
-        let doNotScanText = md.slice(0, -100)
-        let scanText = md.slice(-100)
-
-        // Regex: <before text>[title](href
-        const match = scanText.match(/([\s\S]*)\[([^\]]+)\]\([^\)]*$/)
-        if (match) {
-            const before = match[1]
-            const title = match[2]
-            return `${doNotScanText}${before}${title}`
-        }
-
-        // Regex: <before text>[title
-        // Or: <before text>[title]
-        const match2 = scanText.match(/([\s\S]*)\[([^\]]+)\]?$/)
-        if (match2) {
-            const before = match2[1]
-            const title = match2[2]
-            return `${doNotScanText}${before}${title}`
-        }
-
-        return md
-    }
-    children = useMemo(() => cleanTruncatedLink(children), [children])
-
     const startedWithLength = useRef(children.length)
     const deltas = useRef<{ t: number; delta: string }[]>([])
 
+    // How much of `children` has been revealed, counted against the raw text rather than the
+    // link-cleaned text: cleaning changes shape as a link finishes arriving, so an index into it
+    // stops meaning the same thing from one render to the next.
     const shown = useRef(0)
+    // Exactly what has been handed to the current parser, so a divergence can be detected.
+    const written = useRef('')
+
     const divRef = useRef<HTMLDivElement>(null)
 
     const parser = useRef<smd.Parser>(null)
 
     useEffect(() => {
-        if (!parser.current) {
-            const renderer = smd.default_renderer(divRef.current)
-            parser.current = smd.parser(renderer)
+        function startParser() {
+            if (divRef.current) {
+                divRef.current.innerHTML = ''
+            }
+            parser.current = smd.parser(smd.default_renderer(divRef.current))
+            written.current = ''
         }
+
+        // Reveal the first `count` characters of `children`. What is displayed is derived from that
+        // prefix every time, so a half-arrived link reads as plain text and turns into a real link
+        // once the whole thing is there.
+        function reveal(count: number) {
+            if (count <= shown.current) return
+            shown.current = count
+
+            const visible = cleanTruncatedLink(children.slice(0, count))
+            if (visible === written.current) return
+            if (!visible.startsWith(written.current)) {
+                // A completed link puts back syntax that was already written out as plain text, and
+                // the parser only appends, so the message has to be re-parsed from a clean slate.
+                startParser()
+            }
+            smd.parser_write(parser.current, visible.slice(written.current.length))
+            written.current = visible
+            onContentShow && onContentShow(visible)
+        }
+
+        if (!parser.current) {
+            startParser()
+        }
+
         if (skipToEnd) {
-            if (shown.current < children.length) {
-                smd.parser_write(parser.current, children.slice(shown.current))
-                shown.current = children.length
-                onContentShow && onContentShow(children.slice(0, shown.current))
-                if (!streaming) {
-                    if (!streaming) {
-                        smd.parser_end(parser.current)
-                    }
-                }
+            reveal(children.length)
+            if (!streaming) {
+                smd.parser_end(parser.current)
             }
             return
         }
@@ -130,7 +157,7 @@ export function StreamingMarkdown({
 
         if (children.length > startedWithLength.current) {
             const delta = children.slice(startedWithLength.current + deltas.current.reduce((acc, curr) => acc + curr.delta.length, 0))
-            deltas.current.push({ t: performance.now(), delta })
+            deltas.current.push({ t: now, delta })
         }
 
         // When the next delta is due, estimated from how far apart the recent ones arrived. The
@@ -155,9 +182,7 @@ export function StreamingMarkdown({
             prevTime = time
 
             if (time >= estimateNextChunkAt) {
-                smd.parser_write(parser.current, children.slice(shown.current, children.length))
-                shown.current = children.length
-                onContentShow && onContentShow(children)
+                reveal(children.length)
                 if (!streaming) {
                     smd.parser_end(parser.current)
                 }
@@ -165,13 +190,13 @@ export function StreamingMarkdown({
             }
 
             const charsToGo = children.length - shown.current
-            const charsToAdd = Math.min(Math.round((charsToGo / (estimateNextChunkAt - time)) * deltaTime), children.length - shown.current)
+            const charsToAdd = Math.min(Math.round((charsToGo / (estimateNextChunkAt - time)) * deltaTime), charsToGo)
             if (charsToAdd > 0) {
-                smd.parser_write(parser.current, children.slice(shown.current, shown.current + charsToAdd))
-                shown.current += charsToAdd
-                onContentShow && onContentShow(children.slice(0, shown.current))
+                reveal(shown.current + charsToAdd)
             }
-            if (shown.current === children.length) {
+            // `>=` rather than `===`: if the message is replaced by a shorter one there is nothing
+            // left to reveal, and the loop has to stop rather than spin on every frame forever.
+            if (shown.current >= children.length) {
                 if (!streaming) {
                     smd.parser_end(parser.current)
                 }
