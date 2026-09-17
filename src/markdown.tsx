@@ -99,7 +99,6 @@ export function StreamingMarkdown({
     }
     children = useMemo(() => cleanTruncatedLink(children), [children])
 
-    const t0 = useRef(performance.now())
     const startedWithLength = useRef(children.length)
     const deltas = useRef<{ t: number; delta: string }[]>([])
 
@@ -134,13 +133,18 @@ export function StreamingMarkdown({
             deltas.current.push({ t: performance.now(), delta })
         }
 
+        // When the next delta is due, estimated from how far apart the recent ones arrived. The
+        // window matters: an assistant message that calls tools spends long stretches producing no
+        // text at all, and a rate measured since the message began would average those gaps in and
+        // keep the reveal crawling for the rest of the turn, however fast the text then arrives.
         function whenIsNextChunk() {
-            if (deltas.current.length === 0) {
+            const recent = deltas.current.slice(-5)
+            // One delta shows no gap, so there is nothing to go on yet.
+            if (recent.length < 2) {
                 return now + 1000
             }
-            const avgChunkSize = deltas.current.slice(-5).reduce((acc, curr) => acc + curr.delta.length, 0) / Math.min(deltas.current.length, 5)
-            const avgCharsPerMs = (children.length - startedWithLength.current) / (now - t0.current)
-            return now + avgChunkSize / avgCharsPerMs
+            const averageGap = (recent[recent.length - 1].t - recent[0].t) / (recent.length - 1)
+            return now + averageGap
         }
 
         const estimateNextChunkAt = whenIsNextChunk()
