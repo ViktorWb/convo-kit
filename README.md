@@ -22,7 +22,8 @@ export function AssistantMessage({ text, streaming }: { text: string; streaming:
 }
 ```
 
-- Renders partial Markdown. While a link is still streaming it is shown as plain text and only made clickable once the full link is present.
+- Renders partial Markdown. While a link is still streaming it is shown as plain text (or held back) and only made clickable once the full link is present.
+- Text that keeps arriving after a message was shown as finished is re-rendered cleanly rather than continuing in a new block.
 - Even if the LLM outputs large chunks, the characters are revealed smoothly in much smaller chunks.
 - Applies a fade-in effect as content is added quickly.
 
@@ -47,6 +48,24 @@ Fade duration in milliseconds.
 
 #### `onContentShow?: (content: string) => void`
 Called as more content is revealed, with the text shown so far.
+
+#### `renderLink?: (href: string, text: string) => ReactNode | undefined`
+Render a link as your own React element, for instance a chip for an in-app reference. Return `undefined` to keep it an ordinary link. The returned node takes the link's place inside an empty `<span data-convo-link>`, and the function is called again on every render, so it should be pure.
+
+```typescript
+<StreamingMarkdown
+	streaming={streaming}
+	renderLink={(href, text) => (href.startsWith('ref:') ? <RecordChip id={href.slice(4)} label={text} /> : undefined)}
+>
+	{text}
+</StreamingMarkdown>
+```
+
+#### `openLinksInNewTab?: boolean` (default `false`)
+Open `http(s)` links to other sites in a new tab (`target="_blank"`, `rel="noreferrer"`).
+
+#### `incompleteLinks?: 'text' | 'hide'` (default `'text'`)
+What to show of a link while it is still streaming. `'text'` shows its text and makes it a link once complete; `'hide'` holds it back from the `[` until it is complete, so a link rendered with `renderLink` never shows as plain text first. Once streaming ends, an unfinished link shows as its text either way.
 
 ## `ScrollBox`
 

@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import * as smd from 'streaming-markdown'
 import { FadeContainer } from './fadeContainer'
 
@@ -83,6 +84,26 @@ function cleanTruncatedLink(md: string): string {
     return md
 }
 
+// Hold back a link that is still arriving, from its `[` onwards, so that it first appears whole:
+// `Read [the rep` shows `Read ` until `](url)` has arrived too.
+function holdBackIncompleteLink(md: string): string {
+    const tail = md.slice(-400)
+    const open = tail.lastIndexOf('[')
+    if (open < 0) return md
+    const rest = tail.slice(open)
+    // A finished link, brackets that turned out not to be a link, or a paragraph break since the
+    // `[` all mean there is nothing left to wait for.
+    if (/^\[[^\]\n]*\]\([^)\n]*\)/.test(rest) || /^\[[^\]\n]*\][^(]/.test(rest) || rest.includes('\n\n')) return md
+    return md.slice(0, md.length - tail.length + open)
+}
+
+interface LinkSlot {
+    key: number
+    slot: HTMLElement
+    href: string
+    text: string
+}
+
 export function StreamingMarkdown({
     children,
     onContentShow,
@@ -90,6 +111,9 @@ export function StreamingMarkdown({
     fade = true,
     fadeDuration,
     skipToEnd = false,
+    renderLink,
+    openLinksInNewTab = false,
+    incompleteLinks = 'text',
     ...rest
 }: {
     children: string
@@ -98,6 +122,9 @@ export function StreamingMarkdown({
     fade?: boolean
     fadeDuration?: number
     skipToEnd?: boolean
+    renderLink?: (href: string, text: string) => React.ReactNode | undefined
+    openLinksInNewTab?: boolean
+    incompleteLinks?: 'text' | 'hide'
 } & Omit<React.ComponentProps<'div'>, 'children'>) {
     const startedWithLength = useRef(children.length)
     const deltas = useRef<{ t: number; delta: string }[]>([])
@@ -112,26 +139,76 @@ export function StreamingMarkdown({
     const divRef = useRef<HTMLDivElement>(null)
 
     const parser = useRef<smd.Parser>(null)
+    // Whether parser_end has been called on the current parser. Anything written to a parser after
+    // its end starts a fresh block (`Jag` shown as `J`, a line break, then `ag`), so text that arrives
+    // after the end is re-parsed from a clean slate instead.
+    const ended = useRef(false)
+
+    const [slots, setSlots] = useState<LinkSlot[]>([])
+    const slotKey = useRef(0)
+    const latestRenderLink = useRef(renderLink)
+    latestRenderLink.current = renderLink
+    const latestNewTab = useRef(openLinksInNewTab)
+    latestNewTab.current = openLinksInNewTab
 
     useEffect(() => {
+        function renderer(root: HTMLElement): smd.Default_Renderer {
+            const base = smd.default_renderer(root)
+            return {
+                ...base,
+                set_attr: (data, type, value) => {
+                    const node = data.nodes[data.index]
+                    if (type === smd.HREF && node instanceof HTMLAnchorElement) {
+                        const text = node.textContent ?? ''
+                        // The link is replaced by an empty element that the caller's React node is
+                        // portalled into; it is called again on every render so it stays current.
+                        if (latestRenderLink.current?.(value, text) !== undefined) {
+                            const slot = document.createElement('span')
+                            slot.setAttribute('data-convo-link', '')
+                            node.replaceWith(slot)
+                            setSlots((current) => [...current, { key: slotKey.current++, slot, href: value, text }])
+                            return
+                        }
+                        smd.default_set_attr(data, type, value)
+                        if (latestNewTab.current && /^https?:\/\//.test(value) && !value.startsWith(window.location.origin)) {
+                            node.setAttribute('target', '_blank')
+                            node.setAttribute('rel', 'noreferrer')
+                        }
+                        return
+                    }
+                    smd.default_set_attr(data, type, value)
+                }
+            }
+        }
+
         function startParser() {
             if (divRef.current) {
                 divRef.current.innerHTML = ''
             }
-            parser.current = smd.parser(smd.default_renderer(divRef.current))
+            setSlots((current) => (current.length ? [] : current))
+            parser.current = smd.parser(renderer(divRef.current!))
             written.current = ''
+            ended.current = false
+        }
+
+        function end() {
+            if (ended.current) return
+            smd.parser_end(parser.current)
+            ended.current = true
         }
 
         // Reveal the first `count` characters of `children`. What is displayed is derived from that
         // prefix every time, so a half-arrived link reads as plain text and turns into a real link
         // once the whole thing is there.
         function reveal(count: number) {
-            if (count <= shown.current) return
+            // An equal count still recomputes: what is visible of the same text changes when streaming ends.
+            if (count < shown.current) return
             shown.current = count
 
-            const visible = cleanTruncatedLink(children.slice(0, count))
+            const prefix = children.slice(0, count)
+            const visible = incompleteLinks === 'hide' && streaming ? holdBackIncompleteLink(prefix) : cleanTruncatedLink(prefix)
             if (visible === written.current) return
-            if (!visible.startsWith(written.current)) {
+            if (ended.current || !visible.startsWith(written.current)) {
                 // A completed link puts back syntax that was already written out as plain text, and
                 // the parser only appends, so the message has to be re-parsed from a clean slate.
                 startParser()
@@ -148,7 +225,7 @@ export function StreamingMarkdown({
         if (skipToEnd) {
             reveal(children.length)
             if (!streaming) {
-                smd.parser_end(parser.current)
+                end()
             }
             return
         }
@@ -184,7 +261,7 @@ export function StreamingMarkdown({
             if (time >= estimateNextChunkAt) {
                 reveal(children.length)
                 if (!streaming) {
-                    smd.parser_end(parser.current)
+                    end()
                 }
                 return
             }
@@ -198,7 +275,7 @@ export function StreamingMarkdown({
             // left to reveal, and the loop has to stop rather than spin on every frame forever.
             if (shown.current >= children.length) {
                 if (!streaming) {
-                    smd.parser_end(parser.current)
+                    end()
                 }
                 return
             }
@@ -208,11 +285,23 @@ export function StreamingMarkdown({
         return () => {
             cancelAnimationFrame(frameId)
         }
-    }, [children, streaming, skipToEnd])
+    }, [children, streaming, skipToEnd, incompleteLinks])
+
+    const portals = slots.map((slot) => createPortal(<React.Fragment>{renderLink?.(slot.href, slot.text)}</React.Fragment>, slot.slot, slot.key))
 
     if (fade) {
-        return <FadeContainer ref={divRef} duration={fadeDuration} {...rest} />
+        return (
+            <>
+                <FadeContainer ref={divRef} duration={fadeDuration} {...rest} />
+                {portals}
+            </>
+        )
     }
 
-    return <div ref={divRef} {...rest} />
+    return (
+        <>
+            <div ref={divRef} {...rest} />
+            {portals}
+        </>
+    )
 }
